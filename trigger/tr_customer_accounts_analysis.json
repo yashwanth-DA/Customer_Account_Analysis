@@ -2,7 +2,7 @@
 	"name": "tr_customer_accounts_analysis",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
 		"pipelines": [
 			{
 				"pipelineReference": {
