@@ -1,0 +1,30 @@
+{
+	"name": "ls_src_metadata_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_ncplbootcampyash",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "src_filenames_metadata.json",
+				"fileSystem": "metadata"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"filenames": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

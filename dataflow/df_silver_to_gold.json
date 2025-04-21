@@ -1,0 +1,361 @@
+{
+	"name": "df_silver_to_gold",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "srcAccounts"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "targetAccounts"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "srcCustomers"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "targetCustomer"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAccountsTable"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAccoountsTableUpdate"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkCustomerInsert"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkCustomerUpdate"
+				}
+			],
+			"transformations": [
+				{
+					"name": "renameColumns"
+				},
+				{
+					"name": "addHashToAccounts"
+				},
+				{
+					"name": "lookup"
+				},
+				{
+					"name": "split"
+				},
+				{
+					"name": "addAuditColumntoInsert"
+				},
+				{
+					"name": "addAuditColumnToUpdaterows"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "renameColumnsCustomers"
+				},
+				{
+					"name": "addHashCustomer"
+				},
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "addAuditCustomerInsert"
+				},
+				{
+					"name": "addAuditCustomersUpdate"
+				},
+				{
+					"name": "AlterRow2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          account_id as integer,",
+				"          customer_id as integer,",
+				"          account_type as string,",
+				"          balance as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'accounts') ~> srcAccounts",
+				"source(output(",
+				"          account_id as integer,",
+				"          hashkey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'select account_id,hashkey\\nfrom project_01.accounts',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> targetAccounts",
+				"source(output(",
+				"          customer_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          zip as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'customers') ~> srcCustomers",
+				"source(output(",
+				"          customer_id as integer,",
+				"          hashkey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'select customer_id,hashkey \\nfrom project_01.customers',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> targetCustomer",
+				"srcAccounts select(mapColumn(",
+				"          each(match(1==1),",
+				"               concat('src_',$$) = $$)",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> renameColumns",
+				"renameColumns derive(src_hashkey = crc32(toString(src_account_id),toString(src_customer_id),src_account_type,toString(src_balance))) ~> addHashToAccounts",
+				"addHashToAccounts, targetAccounts lookup(src_account_id == account_id,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup",
+				"lookup split(isNull(account_id),",
+				"     src_account_id == account_id && src_hashkey !=hashkey,",
+				"     disjoint: false) ~> split@(insertrows, updaterows)",
+				"split@insertrows derive(src_createddate = currentTimestamp(),",
+				"          src_createdby = 'dataflow',",
+				"          src_updatedtime = currentTimestamp(),",
+				"          src_updatedby = 'dataflow') ~> addAuditColumntoInsert",
+				"split@updaterows derive(src_updateddate = currentTimestamp(),",
+				"          src_updatedby = 'dataflow-updated') ~> addAuditColumnToUpdaterows",
+				"addAuditColumnToUpdaterows alterRow(updateIf(1==1)) ~> AlterRow1",
+				"srcCustomers select(mapColumn(",
+				"          each(match(1==1),",
+				"               concat('src_',$$) = $$)",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> renameColumnsCustomers",
+				"renameColumnsCustomers derive(src_hashkey = crc32(concat(toString(src_customer_id),src_first_name,src_last_name,src_address,src_city,src_zip))) ~> addHashCustomer",
+				"addHashCustomer, targetCustomer lookup(src_customer_id == customer_id,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 split(isNull(customer_id),",
+				"     src_customer_id==customer_id && src_hashkey!=hashkey,",
+				"     disjoint: false) ~> split1@(insertRowsCustomers, updateRowsCustomers)",
+				"split1@insertRowsCustomers derive(src_createddate = currentTimestamp(),",
+				"          src_createdby = 'dataflow',",
+				"          src_updateddate = currentTimestamp(),",
+				"          src_updatedby = 'dataflow') ~> addAuditCustomerInsert",
+				"split1@updateRowsCustomers derive(src_updatedby = 'dataflow-updated',",
+				"          src_updateddate = currentTimestamp()) ~> addAuditCustomersUpdate",
+				"addAuditCustomersUpdate alterRow(updateIf(1==1)) ~> AlterRow2",
+				"addAuditColumntoInsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          account_id as integer,",
+				"          customer_id as integer,",
+				"          account_type as string,",
+				"          balance as double,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'accounts',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          account_id = src_account_id,",
+				"          customer_id = src_customer_id,",
+				"          account_type = src_account_type,",
+				"          balance = src_balance,",
+				"          hashkey = src_hashkey,",
+				"          account_id,",
+				"          hashkey,",
+				"          createddate = src_createddate,",
+				"          createdby = src_createdby,",
+				"          updateddate = src_updatedtime,",
+				"          updatedby = src_updatedby",
+				"     )) ~> sinkAccountsTable",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          account_id as integer,",
+				"          customer_id as integer,",
+				"          account_type as string,",
+				"          balance as double,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'accounts',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['account_id'],",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          account_id = src_account_id,",
+				"          customer_id = src_customer_id,",
+				"          account_type = src_account_type,",
+				"          balance = src_balance,",
+				"          hashkey = src_hashkey,",
+				"          account_id,",
+				"          hashkey,",
+				"          updateddate = src_updateddate,",
+				"          updatedby = src_updatedby",
+				"     )) ~> sinkAccoountsTableUpdate",
+				"addAuditCustomerInsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          customer_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          zip as string,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'customers',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          customer_id = src_customer_id,",
+				"          first_name = src_first_name,",
+				"          last_name = src_last_name,",
+				"          address = src_address,",
+				"          city = src_city,",
+				"          state = src_state,",
+				"          zip = src_zip,",
+				"          hashkey = src_hashkey,",
+				"          createddate = src_createddate,",
+				"          createdby = src_createdby,",
+				"          updateddate = src_updateddate,",
+				"          updatedby = src_updatedby",
+				"     )) ~> sinkCustomerInsert",
+				"AlterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          customer_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          zip as string,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'customers',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['customer_id'],",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          customer_id = src_customer_id,",
+				"          first_name = src_first_name,",
+				"          last_name = src_last_name,",
+				"          address = src_address,",
+				"          city = src_city,",
+				"          state = src_state,",
+				"          zip = src_zip,",
+				"          hashkey = src_hashkey,",
+				"          updatedby = src_updatedby,",
+				"          updateddate = src_updateddate",
+				"     )) ~> sinkCustomerUpdate"
+			]
+		}
+	}
+}

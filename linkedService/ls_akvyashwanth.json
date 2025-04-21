@@ -1,0 +1,11 @@
+{
+	"name": "ls_akvyashwanth",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://akvyashwanth.vault.azure.net/"
+		}
+	}
+}

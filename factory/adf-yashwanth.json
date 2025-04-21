@@ -1,0 +1,9 @@
+{
+	"name": "adf-yashwanth",
+	"location": "canadacentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2d997431-0721-4f57-96e8-c9846b1b657d",
+		"tenantId": "90fce389-0ca4-417f-90cc-21bf5c0b89b6"
+	}
+}

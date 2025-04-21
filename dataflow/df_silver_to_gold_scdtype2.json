@@ -1,0 +1,534 @@
+{
+	"name": "df_silver_to_gold_scdtype2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "loanPayments"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "targetLoanPayments"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "loans"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "targetLoans"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "transactions"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "targetTransactions"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkLoanPaymentsUpdate"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkLoanPaymentsInsert"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkUpdateRowsLoans"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkInsertRowsLoans"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkUpdateRowsTransactions"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_server_db_azuresql",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkInsertRowsTransactions"
+				}
+			],
+			"transformations": [
+				{
+					"name": "renameColumnsLoanPayments"
+				},
+				{
+					"name": "addHashToLoanPayments"
+				},
+				{
+					"name": "lookup"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "addAuditUpdateLoanPayments"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "unionUpdateRowsToInsertLoanPayments"
+				},
+				{
+					"name": "addAuditInsertLoanPayments"
+				},
+				{
+					"name": "renameLoanColumns"
+				},
+				{
+					"name": "addHashToLoans"
+				},
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "split2"
+				},
+				{
+					"name": "addAuditToUpdateRowsLoans"
+				},
+				{
+					"name": "AlterRow2"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "addAuditToInsertRowsLoans"
+				},
+				{
+					"name": "renameTransactionsColumns"
+				},
+				{
+					"name": "addHashToTransactions"
+				},
+				{
+					"name": "lookup2"
+				},
+				{
+					"name": "split3"
+				},
+				{
+					"name": "addAuditUpdaterowsTransactions"
+				},
+				{
+					"name": "AlterRow3"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "addAuditInsertRowsTransactions"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          payment_id as integer,",
+				"          loan_id as integer,",
+				"          payment_date as date,",
+				"          payment_amount as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'loan_payments') ~> loanPayments",
+				"source(output(",
+				"          payment_id as integer,",
+				"          hashkey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'select payment_id,hashkey from project_01.loanpayments \\nwhere isActive=1',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> targetLoanPayments",
+				"source(output(",
+				"          loan_id as integer,",
+				"          customer_id as integer,",
+				"          loan_amount as double,",
+				"          interest_rate as double,",
+				"          loan_term as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'loans') ~> loans",
+				"source(output(",
+				"          loan_id as integer,",
+				"          hashkey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'select loan_id,hashkey\\nfrom project_01.loans\\nwhere isActive=1',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> targetLoans",
+				"source(output(",
+				"          transaction_id as integer,",
+				"          account_id as integer,",
+				"          transaction_date as date,",
+				"          transaction_amount as double,",
+				"          transaction_type as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'transactions') ~> transactions",
+				"source(output(",
+				"          transaction_id as integer,",
+				"          hashkey as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'query',",
+				"     store: 'sqlserver',",
+				"     query: 'select transaction_id,hashkey\\nfrom project_01.transactions\\nwhere isActive=1',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> targetTransactions",
+				"loanPayments select(mapColumn(",
+				"          each(match(1==1),",
+				"               concat('src_',$$) = $$)",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> renameColumnsLoanPayments",
+				"renameColumnsLoanPayments derive(src_hashkey = crc32(concat(toString(src_payment_id),toString(src_loan_id),toString(src_payment_date),toString(src_payment_amount)))) ~> addHashToLoanPayments",
+				"addHashToLoanPayments, targetLoanPayments lookup(src_payment_id == payment_id,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup",
+				"lookup split(isNull(payment_id),",
+				"     src_payment_id==payment_id && src_hashkey!=hashkey,",
+				"     disjoint: false) ~> split1@(insertLoanPayments, updateLoanPayments)",
+				"split1@updateLoanPayments derive(src_updatedby = 'dataflow-updated',",
+				"          src_updateddate = currentTimestamp(),",
+				"          src_isActive = 0) ~> addAuditUpdateLoanPayments",
+				"addAuditUpdateLoanPayments alterRow(updateIf(1==1)) ~> AlterRow1",
+				"split1@insertLoanPayments, split1@updateLoanPayments union(byName: true)~> unionUpdateRowsToInsertLoanPayments",
+				"unionUpdateRowsToInsertLoanPayments derive(src_createddate = currentTimestamp(),",
+				"          src_createdby = 'dataflow',",
+				"          src_updateddate = currentTimestamp(),",
+				"          src_updatedby = 'dataflow',",
+				"          src_isActive = 1) ~> addAuditInsertLoanPayments",
+				"loans select(mapColumn(",
+				"          each(match(1==1),",
+				"               concat('src_',$$) = $$)",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> renameLoanColumns",
+				"renameLoanColumns derive(src_hashkey = crc32(concat(toString(src_loan_id),toString(src_customer_id),toString(src_loan_amount),toString(src_interest_rate),toString(src_loan_term)))) ~> addHashToLoans",
+				"addHashToLoans, targetLoans lookup(src_loan_id == loan_id,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 split(isNull(loan_id),",
+				"     src_loan_id==loan_id && src_hashkey!=hashkey,",
+				"     disjoint: false) ~> split2@(insertRowsLoans, updateRowsLoans)",
+				"split2@updateRowsLoans derive(src_updateddate = currentTimestamp(),",
+				"          src_updatedby = 'dataflow-updated',",
+				"          src_isActive = 0) ~> addAuditToUpdateRowsLoans",
+				"addAuditToUpdateRowsLoans alterRow(updateIf(1==1)) ~> AlterRow2",
+				"split2@insertRowsLoans, split2@updateRowsLoans union(byName: true)~> union1",
+				"union1 derive(src_createddate = currentTimestamp(),",
+				"          src_createdby = 'dataflow',",
+				"          src_updateddate = currentTimestamp(),",
+				"          src_updatedby = 'dataflow',",
+				"          src_isActive = 1) ~> addAuditToInsertRowsLoans",
+				"transactions select(mapColumn(",
+				"          each(match(1==1),",
+				"               concat('src_',$$) = $$)",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> renameTransactionsColumns",
+				"renameTransactionsColumns derive(src_hashkey = crc32(concat(toString(src_transaction_id),toString(src_account_id),toString(src_transaction_date),toString(src_transaction_amount),src_transaction_type))) ~> addHashToTransactions",
+				"addHashToTransactions, targetTransactions lookup(src_transaction_id == transaction_id,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup2",
+				"lookup2 split(isNull(transaction_id),",
+				"     src_transaction_id==transaction_id && src_hashkey !=hashkey,",
+				"     disjoint: false) ~> split3@(insertRowsTransactions, updateRowsTransactions)",
+				"split3@updateRowsTransactions derive(src_updateddate = currentTimestamp(),",
+				"          src_updatedby = 'dataflow-updated',",
+				"          src_isActive = 0) ~> addAuditUpdaterowsTransactions",
+				"addAuditUpdaterowsTransactions alterRow(updateIf(1==1)) ~> AlterRow3",
+				"split3@insertRowsTransactions, split3@updateRowsTransactions union(byName: true)~> union2",
+				"union2 derive(src_createddate = currentTimestamp(),",
+				"          src_createdby = 'dataflow',",
+				"          src_updateddate = currentTimestamp(),",
+				"          src_updatedby = 'dataflow',",
+				"          src_isActive = 1) ~> addAuditInsertRowsTransactions",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          payment_id as integer,",
+				"          loan_id as integer,",
+				"          payment_date as timestamp,",
+				"          payment_amount as double,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string,",
+				"          isActive as integer",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'loanpayments',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['payment_id','hashkey'],",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          payment_id,",
+				"          hashkey,",
+				"          updatedby = src_updatedby,",
+				"          updateddate = src_updateddate,",
+				"          isActive = src_isActive",
+				"     )) ~> sinkLoanPaymentsUpdate",
+				"addAuditInsertLoanPayments sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          payment_id as integer,",
+				"          loan_id as integer,",
+				"          payment_date as timestamp,",
+				"          payment_amount as double,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string,",
+				"          isActive as integer",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'loanpayments',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          payment_id = src_payment_id,",
+				"          loan_id = src_loan_id,",
+				"          payment_date = src_payment_date,",
+				"          payment_amount = src_payment_amount,",
+				"          hashkey = src_hashkey,",
+				"          createddate = src_createddate,",
+				"          createdby = src_createdby,",
+				"          updateddate = src_updateddate,",
+				"          updatedby = src_updatedby,",
+				"          isActive = src_isActive",
+				"     )) ~> sinkLoanPaymentsInsert",
+				"AlterRow2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          loan_id as integer,",
+				"          customer_id as integer,",
+				"          loan_amount as double,",
+				"          interest_rate as double,",
+				"          loan_term as integer,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string,",
+				"          isActive as integer",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'loans',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['loan_id','hashkey'],",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          loan_id,",
+				"          hashkey,",
+				"          updateddate = src_updateddate,",
+				"          updatedby = src_updatedby,",
+				"          isActive = src_isActive",
+				"     )) ~> sinkUpdateRowsLoans",
+				"addAuditToInsertRowsLoans sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          loan_id as integer,",
+				"          customer_id as integer,",
+				"          loan_amount as double,",
+				"          interest_rate as double,",
+				"          loan_term as integer,",
+				"          hashkey as long,",
+				"          createddate as timestamp,",
+				"          createdby as string,",
+				"          updateddate as timestamp,",
+				"          updatedby as string,",
+				"          isActive as integer",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'loans',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          loan_id = src_loan_id,",
+				"          customer_id = src_customer_id,",
+				"          loan_amount = src_loan_amount,",
+				"          interest_rate = src_interest_rate,",
+				"          loan_term = src_loan_term,",
+				"          hashkey = src_hashkey,",
+				"          createddate = src_createddate,",
+				"          createdby = src_createdby,",
+				"          updateddate = src_updateddate,",
+				"          updatedby = src_updatedby,",
+				"          isActive = src_isActive",
+				"     )) ~> sinkInsertRowsLoans",
+				"AlterRow3 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          transaction_id as integer,",
+				"          account_id as integer,",
+				"          transaction_date as timestamp,",
+				"          transaction_amount as double,",
+				"          transaction_type as string,",
+				"          hashkey as long,",
+				"          createdby as string,",
+				"          createddate as timestamp,",
+				"          updatedby as string,",
+				"          updateddate as timestamp,",
+				"          isActive as integer",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'transactions',",
+				"     insertable: false,",
+				"     updateable: true,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     keys:['transaction_id','hashkey'],",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          transaction_id,",
+				"          hashkey,",
+				"          updateddate = src_updateddate,",
+				"          updatedby = src_updatedby,",
+				"          isActive = src_isActive",
+				"     )) ~> sinkUpdateRowsTransactions",
+				"addAuditInsertRowsTransactions sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          transaction_id as integer,",
+				"          account_id as integer,",
+				"          transaction_date as timestamp,",
+				"          transaction_amount as double,",
+				"          transaction_type as string,",
+				"          hashkey as long,",
+				"          createdby as string,",
+				"          createddate as timestamp,",
+				"          updatedby as string,",
+				"          updateddate as timestamp,",
+				"          isActive as integer",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'project_01',",
+				"     tableName: 'transactions',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     stagingSchemaName: '',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          transaction_id = src_transaction_id,",
+				"          account_id = src_account_id,",
+				"          transaction_date = src_transaction_date,",
+				"          transaction_amount = src_transaction_amount,",
+				"          transaction_type = src_transaction_type,",
+				"          hashkey = src_hashkey,",
+				"          createddate = src_createddate,",
+				"          createdby = src_createdby,",
+				"          updateddate = src_updateddate,",
+				"          updatedby = src_updatedby,",
+				"          isActive = src_isActive",
+				"     )) ~> sinkInsertRowsTransactions"
+			]
+		}
+	}
+}

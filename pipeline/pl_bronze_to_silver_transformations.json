@@ -1,0 +1,39 @@
+{
+	"name": "pl_bronze_to_silver_transformations",
+	"properties": {
+		"activities": [
+			{
+				"name": "Data flow",
+				"description": "transform files in bronze and store in silver",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_bronze_to_silver",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "None",
+					"cacheSinks": {
+						"firstRowOnly": true
+					}
+				}
+			}
+		],
+		"concurrency": 5,
+		"annotations": [],
+		"lastPublishTime": "2025-04-17T15:07:38Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

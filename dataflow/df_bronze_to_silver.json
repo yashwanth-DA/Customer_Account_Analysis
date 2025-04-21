@@ -1,0 +1,346 @@
+{
+	"name": "df_bronze_to_silver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "accounts"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "customers"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "loanPayments"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "loans"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "transactions"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkadlsSilverAccounts"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkaldsSilverCustomers"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAdlsSilverLoanPayments"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAdlsSilverLoans"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ncplbootcampyash",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAdlsSilverTransactions"
+				}
+			],
+			"transformations": [
+				{
+					"name": "removeNullsFromAccounts",
+					"description": "removenull"
+				},
+				{
+					"name": "upsertAccounts"
+				},
+				{
+					"name": "removeNullsFromCustomers"
+				},
+				{
+					"name": "upsertCustomers"
+				},
+				{
+					"name": "removeNullFromLoanPayments"
+				},
+				{
+					"name": "removeDuplicates"
+				},
+				{
+					"name": "upsertLoanpayments"
+				},
+				{
+					"name": "removeDuplictates"
+				},
+				{
+					"name": "removeDuplicatesFromCustomers"
+				},
+				{
+					"name": "removeNullFromLoans"
+				},
+				{
+					"name": "removeDuplicatesFromLoans"
+				},
+				{
+					"name": "upsertLoans"
+				},
+				{
+					"name": "removeNullFromTransactions"
+				},
+				{
+					"name": "removeDuplicateFromTransactions"
+				},
+				{
+					"name": "upsertTransactions"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          account_id as integer,",
+				"          customer_id as integer,",
+				"          account_type as string,",
+				"          balance as double",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delimited',",
+				"     fileSystem: 'bronze',",
+				"     folderPath: 'accounts',",
+				"     fileName: 'accounts.csv',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> accounts",
+				"source(output(",
+				"          customer_id as integer,",
+				"          first_name as string,",
+				"          last_name as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          zip as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delimited',",
+				"     fileSystem: 'bronze',",
+				"     folderPath: 'customers',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> customers",
+				"source(output(",
+				"          payment_id as integer,",
+				"          loan_id as integer,",
+				"          payment_date as date,",
+				"          payment_amount as double",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delimited',",
+				"     fileSystem: 'bronze',",
+				"     folderPath: 'loan_payments',",
+				"     fileName: 'loan_payments.csv',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> loanPayments",
+				"source(output(",
+				"          loan_id as integer,",
+				"          customer_id as integer,",
+				"          loan_amount as double,",
+				"          interest_rate as double,",
+				"          loan_term as integer",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delimited',",
+				"     fileSystem: 'bronze',",
+				"     folderPath: 'loans',",
+				"     fileName: 'loans.csv',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> loans",
+				"source(output(",
+				"          transaction_id as integer,",
+				"          account_id as integer,",
+				"          transaction_date as date,",
+				"          transaction_amount as double,",
+				"          transaction_type as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: true,",
+				"     format: 'delimited',",
+				"     fileSystem: 'bronze',",
+				"     folderPath: 'transactions',",
+				"     fileName: 'transactions.csv',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true) ~> transactions",
+				"accounts filter(!isNull(account_id) && !isNull(customer_id) && !isNull(account_type)) ~> removeNullsFromAccounts",
+				"removeDuplictates alterRow(upsertIf(true())) ~> upsertAccounts",
+				"customers filter(!isNull(customer_id) && !isNull(first_name) && !isNull(last_name) && !isNull(address) && !isNull(city) && !isNull(state) && !isNull(zip)) ~> removeNullsFromCustomers",
+				"removeDuplicatesFromCustomers alterRow(upsertIf(true())) ~> upsertCustomers",
+				"loanPayments filter(!isNull(payment_id) && !isNull(loan_id) && !isNull(payment_date) && !isNull(payment_amount)) ~> removeNullFromLoanPayments",
+				"removeNullFromLoanPayments aggregate(groupBy(payment_id),",
+				"     each(match(name!='payment_id'), $$ = first($$))) ~> removeDuplicates",
+				"removeDuplicates alterRow(upsertIf(true())) ~> upsertLoanpayments",
+				"removeNullsFromAccounts aggregate(groupBy(account_id),",
+				"     each(match(name!='account_id'), $$ = first($$))) ~> removeDuplictates",
+				"removeNullsFromCustomers aggregate(groupBy(customer_id),",
+				"     each(match(name!='customer_id'), $$ = first($$))) ~> removeDuplicatesFromCustomers",
+				"loans filter(!isNull(loan_id) && !isNull(customer_id) && !isNull(loan_amount) && !isNull(interest_rate) && !isNull(loan_term)) ~> removeNullFromLoans",
+				"removeNullFromLoans aggregate(groupBy(loan_id),",
+				"     each(match(name!='loan_id'), $$ = first($$))) ~> removeDuplicatesFromLoans",
+				"removeDuplicatesFromLoans alterRow(upsertIf(true())) ~> upsertLoans",
+				"transactions filter(!isNull(transaction_id) && !isNull(account_id) && !isNull(transaction_date) && !isNull(transaction_amount) && !isNull(transaction_type)) ~> removeNullFromTransactions",
+				"removeNullFromTransactions aggregate(groupBy(transaction_id),",
+				"     each(match(name!='transaction_id'), $$ = first($$))) ~> removeDuplicateFromTransactions",
+				"removeDuplicateFromTransactions alterRow(upsertIf(true())) ~> upsertTransactions",
+				"upsertAccounts sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'accounts',",
+				"     deltaTruncate: true,",
+				"     mergeSchema: false,",
+				"     autoCompact: true,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['account_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkadlsSilverAccounts",
+				"upsertCustomers sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'customers',",
+				"     deltaTruncate: true,",
+				"     mergeSchema: false,",
+				"     autoCompact: true,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['customer_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkaldsSilverCustomers",
+				"upsertLoanpayments sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'loan_payments',",
+				"     deltaTruncate: true,",
+				"     mergeSchema: false,",
+				"     autoCompact: true,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['payment_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkAdlsSilverLoanPayments",
+				"upsertLoans sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'loans',",
+				"     deltaTruncate: true,",
+				"     mergeSchema: false,",
+				"     autoCompact: true,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['loan_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkAdlsSilverLoans",
+				"upsertTransactions sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'transactions',",
+				"     deltaTruncate: true,",
+				"     mergeSchema: false,",
+				"     autoCompact: true,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['transaction_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkAdlsSilverTransactions"
+			]
+		}
+	}
+}

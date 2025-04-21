@@ -1,0 +1,17 @@
+{
+	"name": "ls_test_laptop",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "C:\\Users\\Yashwanth\\Downloads",
+			"userId": "yashwanthchalla55@gmail.com",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJiNjBkNTgwYi0yYmZmLTQyMjAtYTE2YS05MmE0ZWFjMjAxNzMiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "IR-yash-laptop",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

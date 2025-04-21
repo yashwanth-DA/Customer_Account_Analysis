@@ -1,0 +1,14 @@
+{
+	"name": "ls_databricks_yashwanth",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-2703617898842728.8.azuredatabricks.net",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/32bb1eef-56f8-4259-b7ae-f7ba9f063ae1/resourceGroups/rg-databricks-yashwanth/providers/Microsoft.Databricks/workspaces/databricks-yashwanth",
+			"existingClusterId": "0402-165019-it2gf5it"
+		}
+	}
+}

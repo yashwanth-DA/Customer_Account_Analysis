@@ -1,0 +1,24 @@
+{
+	"name": "ls_laptop",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "C:\\Users\\Yashwanth\\Desktop\\Ncpl Azure\\Bootcamp\\Project_1\\Data",
+			"userId": "yashwanthchalla55@gmail.com",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_akvyashwanth",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "laptop-pw"
+			}
+		},
+		"connectVia": {
+			"referenceName": "IR-yash-laptop",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
