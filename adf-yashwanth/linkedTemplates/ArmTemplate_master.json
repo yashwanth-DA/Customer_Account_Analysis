@@ -1,0 +1,140 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-yashwanth"
+		},
+		"ls_adlsgen2_formulaonedll_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_adlsgen2_formulaonedll'"
+		},
+		"ls_ncplbootcampyash_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_ncplbootcampyash'"
+		},
+		"ls_test_laptop_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_test_laptop'"
+		},
+		"ls_adlsgen2_formulaonedll_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://formulaonedll.dfs.core.windows.net/"
+		},
+		"ls_akvyashwanth_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://akvyashwanth.vault.azure.net/"
+		},
+		"ls_databricks_yashwanth_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0402-165019-it2gf5it"
+		},
+		"ls_laptop_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "C:\\Users\\Yashwanth\\Desktop\\Ncpl Azure\\Bootcamp\\Project_1\\Data"
+		},
+		"ls_laptop_properties_typeProperties_userId": {
+			"type": "string",
+			"defaultValue": "yashwanthchalla55@gmail.com"
+		},
+		"ls_ncplbootcampyash_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ncplbootcampyash.dfs.core.windows.net/"
+		},
+		"ls_server_db_azuresql_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "server-db-azuresql.database.windows.net"
+		},
+		"ls_server_db_azuresql_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "db-azuresql"
+		},
+		"ls_server_db_azuresql_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladminuser"
+		},
+		"ls_test_laptop_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "C:\\Users\\Yashwanth\\Downloads"
+		},
+		"ls_test_laptop_properties_typeProperties_userId": {
+			"type": "string",
+			"defaultValue": "yashwanthchalla55@gmail.com"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "adf-yashwanth_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"ls_adlsgen2_formulaonedll_accountKey": {
+						"value": "[parameters('ls_adlsgen2_formulaonedll_accountKey')]"
+					},
+					"ls_ncplbootcampyash_accountKey": {
+						"value": "[parameters('ls_ncplbootcampyash_accountKey')]"
+					},
+					"ls_test_laptop_password": {
+						"value": "[parameters('ls_test_laptop_password')]"
+					},
+					"ls_adlsgen2_formulaonedll_properties_typeProperties_url": {
+						"value": "[parameters('ls_adlsgen2_formulaonedll_properties_typeProperties_url')]"
+					},
+					"ls_akvyashwanth_properties_typeProperties_baseUrl": {
+						"value": "[parameters('ls_akvyashwanth_properties_typeProperties_baseUrl')]"
+					},
+					"ls_databricks_yashwanth_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('ls_databricks_yashwanth_properties_typeProperties_existingClusterId')]"
+					},
+					"ls_ncplbootcampyash_properties_typeProperties_url": {
+						"value": "[parameters('ls_ncplbootcampyash_properties_typeProperties_url')]"
+					},
+					"ls_laptop_properties_typeProperties_host": {
+						"value": "[parameters('ls_laptop_properties_typeProperties_host')]"
+					},
+					"ls_laptop_properties_typeProperties_userId": {
+						"value": "[parameters('ls_laptop_properties_typeProperties_userId')]"
+					},
+					"ls_server_db_azuresql_properties_typeProperties_server": {
+						"value": "[parameters('ls_server_db_azuresql_properties_typeProperties_server')]"
+					},
+					"ls_server_db_azuresql_properties_typeProperties_database": {
+						"value": "[parameters('ls_server_db_azuresql_properties_typeProperties_database')]"
+					},
+					"ls_server_db_azuresql_properties_typeProperties_userName": {
+						"value": "[parameters('ls_server_db_azuresql_properties_typeProperties_userName')]"
+					},
+					"ls_test_laptop_properties_typeProperties_host": {
+						"value": "[parameters('ls_test_laptop_properties_typeProperties_host')]"
+					},
+					"ls_test_laptop_properties_typeProperties_userId": {
+						"value": "[parameters('ls_test_laptop_properties_typeProperties_userId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

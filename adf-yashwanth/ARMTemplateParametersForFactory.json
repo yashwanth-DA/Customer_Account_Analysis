@@ -1,0 +1,51 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-yashwanth"
+		},
+		"ls_adlsgen2_formulaonedll_accountKey": {
+			"value": ""
+		},
+		"ls_ncplbootcampyash_accountKey": {
+			"value": ""
+		},
+		"ls_test_laptop_password": {
+			"value": ""
+		},
+		"ls_adlsgen2_formulaonedll_properties_typeProperties_url": {
+			"value": "https://formulaonedll.dfs.core.windows.net/"
+		},
+		"ls_akvyashwanth_properties_typeProperties_baseUrl": {
+			"value": "https://akvyashwanth.vault.azure.net/"
+		},
+		"ls_databricks_yashwanth_properties_typeProperties_existingClusterId": {
+			"value": "0402-165019-it2gf5it"
+		},
+		"ls_laptop_properties_typeProperties_host": {
+			"value": "C:\\Users\\Yashwanth\\Desktop\\Ncpl Azure\\Bootcamp\\Project_1\\Data"
+		},
+		"ls_laptop_properties_typeProperties_userId": {
+			"value": "yashwanthchalla55@gmail.com"
+		},
+		"ls_ncplbootcampyash_properties_typeProperties_url": {
+			"value": "https://ncplbootcampyash.dfs.core.windows.net/"
+		},
+		"ls_server_db_azuresql_properties_typeProperties_server": {
+			"value": "server-db-azuresql.database.windows.net"
+		},
+		"ls_server_db_azuresql_properties_typeProperties_database": {
+			"value": "db-azuresql"
+		},
+		"ls_server_db_azuresql_properties_typeProperties_userName": {
+			"value": "sqladminuser"
+		},
+		"ls_test_laptop_properties_typeProperties_host": {
+			"value": "C:\\Users\\Yashwanth\\Downloads"
+		},
+		"ls_test_laptop_properties_typeProperties_userId": {
+			"value": "yashwanthchalla55@gmail.com"
+		}
+	}
+}
